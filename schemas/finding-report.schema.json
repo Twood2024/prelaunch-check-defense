@@ -1,0 +1,191 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "./finding-report.schema.json",
+  "title": "Pre-launch Check Finding Report",
+  "description": "Machine-readable pre-launch audit findings. Defense only — no exploit payloads. Each finding should include an id, severity, non-secret evidence, a hardening fix, and a way to verify the fix.",
+  "type": "object",
+  "required": [
+    "project",
+    "audit_date",
+    "status",
+    "findings"
+  ],
+  "additionalProperties": false,
+  "properties": {
+    "project": {
+      "type": "string",
+      "minLength": 1,
+      "description": "Product or repo name under audit"
+    },
+    "audit_date": {
+      "type": "string",
+      "format": "date",
+      "description": "ISO date YYYY-MM-DD"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "draft",
+        "ready",
+        "fixed",
+        "wontfix",
+        "blocked"
+      ],
+      "description": "Lifecycle of this report package"
+    },
+    "auditor": {
+      "type": "string",
+      "description": "Optional auditor name or role"
+    },
+    "playbook_refs": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "Playbook filenames used (e.g. 04-cf-workers-do-ws.md)"
+    },
+    "findings": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/finding"
+      }
+    }
+  },
+  "$defs": {
+    "finding": {
+      "type": "object",
+      "required": [
+        "id",
+        "rule_ref",
+        "severity",
+        "blocking_release",
+        "target_file",
+        "line_hint",
+        "evidence_snippet",
+        "instruction_for_coder",
+        "verify_command",
+        "confidence",
+        "fix_constraints",
+        "queue_tier"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "id": {
+          "type": "string",
+          "pattern": "^F-[A-Z0-9]+-[0-9]{3}$",
+          "description": "Finding id, e.g. F-CFWS-001"
+        },
+        "rule_ref": {
+          "type": "string",
+          "minLength": 1,
+          "description": "RULE_ID from a playbook, e.g. CFWS-MOCK-OFF"
+        },
+        "severity": {
+          "type": "string",
+          "enum": [
+            "critical",
+            "high",
+            "medium",
+            "low",
+            "info"
+          ]
+        },
+        "blocking_release": {
+          "type": "boolean",
+          "description": "true = must fix before public deploy / store ship"
+        },
+        "target_file": {
+          "type": "string",
+          "minLength": 1,
+          "description": "Primary path relative to repo root (required non-empty)"
+        },
+        "line_hint": {
+          "type": "string",
+          "minLength": 1,
+          "description": "Required line or range string, e.g. 120-145. Use \"n/a\" or \"file\" when exact line unknown — never null."
+        },
+        "evidence_snippet": {
+          "type": "string",
+          "maxLength": 2000,
+          "description": "Short non-secret evidence (redact secrets; never echo live values)"
+        },
+        "instruction_for_coder": {
+          "type": "string",
+          "minLength": 1,
+          "description": "Concrete hardening steps for the implementer; no attack recipes"
+        },
+        "fix_constraints": {
+          "type": "string",
+          "minLength": 1,
+          "description": "Hard limits for the implementer: what not to change (scope, no deploy, no offensive tests). Required for every finding."
+        },
+        "verify_command": {
+          "type": "string",
+          "minLength": 1,
+          "description": "Required shell, rg, or curl command to prove the fix is in place (authorized systems only; non-empty). Do not verify by attacking."
+        },
+        "confidence": {
+          "type": "string",
+          "enum": [
+            "high",
+            "medium",
+            "low"
+          ],
+          "description": "Auditor confidence (evidence strength / applicability)"
+        },
+        "verification_status": {
+          "type": "string",
+          "enum": [
+            "open",
+            "verified_fixed",
+            "failed"
+          ],
+          "description": "Optional outcome after re-checking that the fix is in place."
+        },
+        "verified_at": {
+          "type": "string",
+          "description": "ISO datetime when verification ran"
+        },
+        "verify_notes": {
+          "type": "string",
+          "maxLength": 2000,
+          "description": "Short evidence from a verify_command re-run (no secrets)"
+        },
+        "queue_tier": {
+          "type": "string",
+          "enum": [
+            "Blocking",
+            "Warning",
+            "Info"
+          ],
+          "description": "Priority band. Blocking = blocking_release true; Warning = high|medium non-blocking; Info = low|info non-blocking."
+        },
+        "status": {
+          "type": "string",
+          "enum": [
+            "open",
+            "verified_fixed",
+            "rejected"
+          ],
+          "description": "Optional finding lifecycle: still open, confirmed fixed, or rejected as a false positive."
+        },
+        "retry_count": {
+          "type": "integer",
+          "minimum": 0,
+          "description": "Optional count of failed verify attempts for this finding."
+        },
+        "last_verify_exit": {
+          "anyOf": [
+            {
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "description": "Exit code from the last verify_command run. A verified fix should have last_verify_exit === 0."
+        }
+      }
+    }
+  }
+}

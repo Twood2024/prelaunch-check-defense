@@ -1,0 +1,38 @@
+{
+  "version": "0.1.0-ref",
+  "samples": [
+    {
+      "id": "pb01-csp-header-builder",
+      "playbook": "01",
+      "path": "samples/pb01-csp-header-builder.md",
+      "added": "2026-11-10"
+    },
+    {
+      "id": "pb02-redirect-cred-headers",
+      "playbook": "02",
+      "playbook_also": [
+        "05"
+      ],
+      "path": "samples/pb02-redirect-cred-headers.md",
+      "added": "2026-11-10"
+    },
+    {
+      "id": "pb07-vite-fs-deny",
+      "playbook": "07",
+      "playbook_also": [
+        "02"
+      ],
+      "path": "samples/pb07-vite-fs-deny.md",
+      "added": "2026-11-10"
+    }
+  ],
+  "playbooks": [
+    "01",
+    "02",
+    "03",
+    "04",
+    "05",
+    "06",
+    "07"
+  ]
+}
